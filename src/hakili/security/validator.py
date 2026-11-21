@@ -18,7 +18,7 @@ def normalize_response(response: str):
     result = re.search(r"```json\s*(.*?)```",response,re.DOTALL)
 
     if result:
-        return result.group(1)
+        return result.group(1).strip()
     else:
         return None
 
