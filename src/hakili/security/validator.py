@@ -10,8 +10,8 @@ class CommandProposal(BaseModel):
 def validate_command(response:str) -> CommandProposal | None :
     try:
         return CommandProposal.model_validate_json(response)
-    except ValidationError :
-        return None
+    except ValidationError as e:
+        return str(e)
 
 
 def normalize_response(response: str):
@@ -21,3 +21,12 @@ def normalize_response(response: str):
         return result.group(1)
     else:
         return None
+
+
+def parse_command_response(response: str):
+    normalized = normalize_response(response)
+
+    if normalized is None:
+        return None
+
+    return validate_command(normalized)
