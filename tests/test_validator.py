@@ -1,5 +1,7 @@
 
 import pytest
+from hakili.security.validator import ValidationResult
+from pydantic import ValidationError
 
 from hakili.security.validator import (
     normalize_response,
@@ -78,9 +80,6 @@ def test_validate_command_invalid_json():
     assert isinstance(result, str)
 
 
-# ----------------------------------
-# Tests de parse_command_response()
-# ----------------------------------
 
 def test_parse_command_response_valid():
     response = '''```json
@@ -89,9 +88,12 @@ def test_parse_command_response_valid():
 
     result = parse_command_response(response)
 
-    assert isinstance(result, CommandProposal)
-    assert result.program == "mkdir"
-    assert result.arguments == ["sauvegarde"]
+    assert isinstance(result, ValidationResult)
+    assert result.success is True
+    assert isinstance(result.proposal, CommandProposal)
+    assert result.proposal.program == "mkdir"
+    assert result.proposal.arguments == ["sauvegarde"]
+    assert result.error is None
 
 
 def test_parse_command_response_invalid_proposal():
@@ -101,8 +103,10 @@ def test_parse_command_response_invalid_proposal():
 
     result = parse_command_response(response)
 
-    assert isinstance(result, str)
-    assert "valid string" in result
+    assert isinstance(result, ValidationResult)
+    assert result.success is False
+    assert result.proposal is None
+    assert "valid string" in result.error
 
 
 def test_parse_command_response_without_json():
@@ -110,4 +114,19 @@ def test_parse_command_response_without_json():
 
     result = parse_command_response(response)
 
-    assert result is None
+    assert isinstance(result, ValidationResult)
+    assert result.success is False
+    assert result.proposal is None
+    assert result.error == (
+        "La réponse de Gemini ne contient aucun bloc JSON exploitable."
+    )
+
+
+
+def test_validation_result_rejects_success_without_proposal():
+    with pytest.raises(ValidationError):
+        ValidationResult(
+            success=True,
+            proposal=None,
+            error=None
+        )
