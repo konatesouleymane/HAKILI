@@ -130,3 +130,35 @@ def test_validation_result_rejects_success_without_proposal():
             proposal=None,
             error=None
         )
+
+
+
+def test_validation_result_rejects_success_with_error():
+    with pytest.raises(ValidationError):
+        ValidationResult(
+            success=True,
+            proposal=CommandProposal(
+                program="mkdir",
+                arguments=["sauvegarde"]
+            ),
+            error="Une erreur est survenue."
+        )
+
+def test_validation_result_rejects_failure_without_error():
+    with pytest.raises(ValidationError):
+        ValidationResult(
+            success=False,
+            proposal=None,
+            error=None
+        )
+
+def test_validation_result_rejects_failure_with_proposal():
+    with pytest.raises(ValidationError):
+        ValidationResult(
+            success=False,
+            proposal=CommandProposal(
+                program="mkdir",
+                arguments=["sauvegarde"]
+            ),
+            error="La validation a échoué."
+        )
